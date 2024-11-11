@@ -1,20 +1,18 @@
-import fs from "fs";
-// Import safe-eval
+import safeEval from "safe-eval";
 
-
-export default function calculator_callback(request, response, response) {
+export default function calculator_callback(request, response) {
     const expression = request.query?.expressionChooser;
     let content = "";
 
     if (expression) {
         try {
             content = fs.readFileSync("public/calculator.html", "utf8");
-            // Replace eval with safe-eval;
-            const answer = eval(expression);
-            content = content.replace("&gt;", "&gt; " + answer)
+            // Use safe-eval instead of eval
+            const answer = safeEval(expression);
+            content = content.replace("&gt;", "&gt; " + answer);
             response.send(content);
         } catch (e) {
-            content = content.replace("&gt;", "&gt; " + e)
+            content = content.replace("&gt;", "&gt; " + e);
             response.send(content);
         }
     } else {
