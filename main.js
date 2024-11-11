@@ -5,9 +5,9 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 
-hostname = "localhost";
-port = process.env.PORT || 4001;
-app = express();
+const hostname = "localhost";
+const port = process.env.PORT || 4001;
+const app = express();
 app.use(express.static(path.resolve() + "/public"));
 
 app.get("/", (request, response) => {
@@ -23,13 +23,17 @@ app.get("/", (request, response) => {
             response.redirect("/regex");
         } else {
             try {
-                // Change the filePath to current working directory using the "path" method
-                const filename = name;
-                content = fs.readFileSync(filename, "utf8");
-                response.send(content);
+                // Secure file path handling
+                const safeBasePath = path.resolve('public'); // Base directory for safety
+                const resolvedPath = path.resolve(safeBasePath, name);
+                if (!resolvedPath.startsWith(safeBasePath)) {
+                    response.status(403).send("Access Denied");
+                } else {
+                    content = fs.readFileSync(resolvedPath, "utf8");
+                    response.send(content);
+                }
             } catch (err) {
-                response.status(404);
-                response.send("File not found");
+                response.status(404).send("File not found");
             }
         }
     } else {
@@ -48,7 +52,4 @@ app.get('/regex', regex_callback);
 
 app.listen(port, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
-})
-
-delete hostname;
-delete port;
+});
